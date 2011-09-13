@@ -1,8 +1,7 @@
-package TPI;
+package CoelaTools::TPI;
 use strict;
 use Data::Dumper;
 use G;
-use tRNA;
 
 sub tpi {
 	my $self = shift;
@@ -21,11 +20,11 @@ sub tpi {
 	system('unlimit stacksize');
 
 	my $i;
-	if ($sequence){
+	if ($opts{sequence}){
 		print $SGML "<E>";
 		print $SGML "<ID>Hoge</ID>";
-		print $SGML "<DNA>". uc $sequence."</DNA>";
-		print $SGML "<SEQ>". uc $sequence."</SEQ>";
+		print $SGML "<DNA>". uc $opts{sequence}."</DNA>";
+		print $SGML "<SEQ>". uc $opts{sequence}."</SEQ>";
 		print $SGML "</E>\n";
 	}
 	else{
@@ -56,9 +55,7 @@ sub tpi {
 		}
 	}
 	close($SGML);
-	my $opt{tmp_darwin} = "/tmp/darwinrap$$.R";
-	my $opt{tmp_result} = "/tmp/darwintpi$$.tab";
-	open(my $SCRIPT, ">$opt{tmp_darwin}");
+	open(my $SCRIPT, ">$opts{tmp_darwin}");
 
 	print $SCRIPT <<EOF;
 		DB = ReadDb('/tmp/genomecds$$.sgml');
@@ -68,26 +65,26 @@ sub tpi {
 			tpi := ComputeTPI(Entry(i));
 			output[i] := [ID(Entry(i)),tpi[1],tpi[2]];
 		od;
-		WriteData(output,'$opt{tmp_result}','\t');
+		WriteData(output,'$opts{tmp_result}','\t');
 		quit();
 EOF
 
 	close($SCRIPT);
 	if ($opts{debug} == 1){
 		print 'script start\n';
-		system ("$opts{darwin_exec} -l $opts{darwin_lib} -i $opt{tmp_darwin}");
+		system ("$opts{darwin_exec} -l $opts{darwin_lib} -i $opts{tmp_darwin}");
 	}
 	else{
-		system ("$opts{darwin_exec} -l $opts{darwin_lib} -i $opt{tmp_darwin} -o /dev/null");
+		system ("$opts{darwin_exec} -l $opts{darwin_lib} -i $opts{tmp_darwin} -o /dev/null");
 	}
 	my $Dstat;
 	($Dstat = $?/256) && die "Aborted in Darwin with status $Dstat.?n";
 	unlink "$opts{tmp_sgml}.map";
 	unlink "$opts{tmp_sgml}.tree";
-	unlink $opt{tmp_darwin};
+	unlink $opts{tmp_darwin};
 	unlink ($opts{tmp_sgml});
 
-	open my $TPI, $opt{tmp_result} or die;
+	open my $TPI, $opts{tmp_result} or die;
 	while(<$TPI>){
 		chomp;
 		my ($cds,$tpi,$tpi2) = split /\t/;
@@ -95,7 +92,7 @@ EOF
 		$self->{$1}->{'tpi'} = $tpi;
 		$self->{$1}->{'tpi_l'} = $tpi2;
 	}
-	unlink $opt{tmp_result};
+	unlink $opts{tmp_result};
 	return $self;
 }
 
