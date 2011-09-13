@@ -18,10 +18,10 @@ use File::Basename;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 
 use lib './lib';
-use tRNA;
-use CoOccurence;
-use TPI;
-use FreeEnergy;
+use CoelaTools::tRNA;
+use CoelaTools::CoOccurence;
+use CoelaTools::TPI;
+use CoelaTools::FreeEnergy;
 
 local $| = 1;
 
